@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PlannerPro">
+<meta name="theme-color" content="#E8603C">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.svg">
+<title>PlannerPro – Coach Franck</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --c:#E8603C;--c2:#F4845F;--cbg:#FDE9E2;
+  --ink:#1C1917;--gray:#6B7280;--bg:#F5F4F1;--white:#fff;
+  --border:#E2E0DC;--green:#16A34A;--gbg:#DCFCE7;
+  --gold:#D97706;--goldbg:#FEF3C7;--blue:#2563EB;--bbg:#DBEAFE;
+  --purple:#7C3AED;--pbg:#EDE9FE;
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;}
+
+/* ── SETUP SCREEN ── */
+#setup{position:fixed;inset:0;background:linear-gradient(160deg,#1C1917 0%,#3D1F0F 50%,#E8603C 100%);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 24px;color:#fff;}
+#setup.hidden{display:none;}
+.setup-logo{font-size:3.5rem;margin-bottom:8px;}
+.setup-title{font-size:1.5rem;font-weight:900;letter-spacing:-.03em;margin-bottom:4px;}
+.setup-sub{font-size:.8rem;opacity:.7;margin-bottom:32px;text-align:center;}
+.setup-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:20px;width:100%;max-width:360px;backdrop-filter:blur(10px);}
+.setup-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:6px;font-weight:700;}
+.setup-input{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:11px 14px;font-size:.88rem;color:#fff;font-family:inherit;outline:none;margin-bottom:14px;}
+.setup-input::placeholder{opacity:.5;}
+.setup-input:focus{border-color:var(--c2);background:rgba(255,255,255,.18);}
+.setup-btn{width:100%;background:var(--c);color:#fff;border:none;border-radius:12px;padding:14px;font-size:.9rem;font-weight:800;letter-spacing:.03em;cursor:pointer;margin-top:4px;transition:all .15s;}
+.setup-btn:active{transform:scale(.97);}
+.habit-picker{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;max-height:220px;overflow-y:auto;}
+.habit-opt{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .2s;}
+.habit-opt.sel{background:rgba(232,96,60,.3);border-color:var(--c2);}
+.habit-opt .hico{font-size:1.3rem;width:28px;text-align:center;}
+.habit-opt .hinfo{flex:1;}
+.habit-opt .hname{font-size:.8rem;font-weight:700;}
+.habit-opt .htime{font-size:.65rem;opacity:.65;}
+.habit-opt .hchk{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.habit-opt.sel .hchk{background:var(--c);border-color:var(--c);}
+.habit-opt.sel .hchk::after{content:'✓';color:#fff;font-size:11px;font-weight:900;}
+.setup-step{font-size:.65rem;text-align:center;opacity:.5;margin-bottom:20px;}
+.step-dots{display:flex;gap:6px;justify-content:center;margin-bottom:24px;}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);}
+.dot.on{background:var(--c2);}
+
+/* ── HEADER ── */
+header{background:var(--white);border-bottom:2.5px solid var(--c);padding:10px 14px 8px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.hrow{display:flex;justify-content:space-between;align-items:center;}
+.app-logo{display:flex;align-items:center;gap:8px;}
+.app-logo .ico{font-size:1.3rem;}
+.app-logo .name{font-size:.95rem;font-weight:900;letter-spacing:-.02em;}
+.app-logo .name span{color:var(--c);}
+.streak-badge{display:flex;align-items:center;gap:5px;background:var(--goldbg);border:1.5px solid #F59E0B;border-radius:20px;padding:4px 10px;}
+.streak-badge .fire{font-size:.9rem;}
+.streak-badge .pts{font-size:.75rem;font-weight:800;color:var(--gold);}
+.date-row{display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+.date-txt{font-size:.72rem;color:var(--gray);}
+.time-txt{font-size:.72rem;font-family:monospace;color:var(--c);font-weight:700;}
+
+/* ── NAV ── */
+nav{display:flex;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+nav::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:9px 13px;font-size:.72rem;font-weight:700;color:var(--gray);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .2s;white-space:nowrap;}
+.tab.on{color:var(--c);border-bottom-color:var(--c);}
+
+/* ── SCROLL AREA ── */
+#appContent{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.view{display:none;padding:12px;}
+.view.on{display:block;padding-bottom:30px;}
+
+/* ── ASSISTANT BANNER ── */
+.ai-banner{background:linear-gradient(135deg,#1C1917,#3D2C20);border-radius:16px;padding:14px 16px;margin-bottom:14px;position:relative;overflow:hidden;}
+.ai-banner::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:var(--c);border-radius:50%;opacity:.15;}
+.ai-avatar{font-size:1.6rem;margin-bottom:6px;}
+.ai-msg{font-size:.82rem;color:#fff;line-height:1.55;font-weight:500;}
+.ai-msg strong{color:#F4845F;}
+.ai-time{font-size:.62rem;color:rgba(255,255,255,.45);margin-top:6px;font-family:monospace;}
+
+/* ── HABIT CARDS ── */
+.section-title{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--gray);margin-bottom:8px;}
+.habits-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.habit-card{background:var(--white);border-radius:14px;padding:13px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px;border-left:3.5px solid var(--border);transition:all .2s;cursor:pointer;}
+.habit-card.done{border-left-color:var(--green);background:#F0FDF4;}
+.habit-card.active{border-left-color:var(--c);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,96,60,.3);}50%{box-shadow:0 0 0 6px rgba(232,96,60,0);}}
+.habit-ico{font-size:1.5rem;width:36px;text-align:center;flex-shrink:0;}
+.habit-info{flex:1;}
+.habit-name{font-size:.82rem;font-weight:700;color:var(--ink);}
+.habit-name.done-txt{text-decoration:line-through;color:var(--gray);}
+.habit-meta{font-size:.65rem;color:var(--gray);margin-top:2px;}
+.habit-pts{font-size:.68rem;font-weight:800;color:var(--gold);background:var(--goldbg);border-radius:20px;padding:2px 8px;flex-shrink:0;}
+.habit-check{width:26px;height:26px;border:2.5px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.habit-card.done .habit-check{background:var(--green);border-color:var(--green);}
+.habit-card.done .habit-check::after{content:'✓';color:#fff;font-size:13px;font-weight:900;}
+
+/* ── SCORE RING ── */
+.score-section{display:flex;gap:10px;margin-bottom:14px;}
+.score-ring-wrap{background:var(--white);border-radius:14px;padding:14px;flex:1;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-svg{position:relative;width:80px;height:80px;}
+.ring-label{text-align:center;margin-top:6px;}
+.ring-num{font-size:1.3rem;font-weight:900;color:var(--c);}
+.ring-sub{font-size:.6rem;color:var(--gray);text-transform:uppercase;letter-spacing:.05em;}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;}
+.stat-mini{background:var(--white);border-radius:12px;padding:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);text-align:center;}
+.stat-mini .num{font-size:1.1rem;font-weight:900;}
+.stat-mini .lbl{font-size:.58rem;color:var(--gray);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+.stat-mini.g .num{color:var(--green);}
+.stat-mini.o .num{color:var(--c);}
+.stat-mini.b .num{color:var(--blue);}
+.stat-mini.p .num{color:var(--purple);}
+
+/* ── QUICK ACTIONS ── */
+.quick-row{display:flex;gap:8px;margin-bottom:14px;}
+.quick-btn{flex:1;background:var(--white);border:none;border-radius:12px;padding:11px 8px;font-size:.7rem;font-weight:700;color:var(--ink);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:all .15s;text-align:center;}
+.quick-btn .qico{font-size:1.2rem;display:block;margin-bottom:3px;}
+.quick-btn:active{transform:scale(.95);}
+.quick-btn.primary{background:var(--c);color:#fff;}
+
+/* ── CARDS GENERIC ── */
+.card{background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:12px;}
+.card-hd{display:flex;align-items:center;gap:6px;padding:10px 13px 8px;border-bottom:1px solid var(--cbg);}
+.card-hd h2{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--c);}
+
+/* ── WEEK TABLE ── */
+.week-scroll{overflow-x:auto;scrollbar-width:none;}
+.week-scroll::-webkit-scrollbar{display:none;}
+table{width:100%;border-collapse:collapse;min-width:480px;}
+th{background:var(--cbg);font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--c);padding:6px 3px;text-align:center;}
+th.tc{background:var(--c);color:#fff;}
+th:first-child{text-align:left;padding-left:10px;min-width:40px;}
+td{font-size:.65rem;padding:2px 2px;border-bottom:1px solid #F5F4F1;}
+td:first-child{font-size:.65rem;font-weight:700;color:var(--ink);padding-left:10px;white-space:nowrap;width:40px;}
+tr.nr td:first-child{color:var(--c);background:var(--cbg);}
+.bi{width:100%;border:none;background:transparent;font-size:.65rem;font-family:inherit;color:var(--ink);padding:3px;border-radius:4px;outline:none;resize:none;min-height:20px;text-align:center;}
+.bi:focus{background:#FFF3EE;}
+
+/* ── BILAN ── */
+.bilan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:11px;}
+.bstat{background:var(--bg);border-radius:10px;padding:9px 6px;text-align:center;}
+.bstat .bn{font-size:1.3rem;font-weight:900;color:var(--c);}
+.bstat .bl{font-size:.58rem;color:var(--gray);text-transform:uppercase;letter-spacing:.04em;}
+.bar-wrap{padding:0 13px 11px;}
+.bar-lbl{display:flex;justify-content:space-between;font-size:.62rem;color:var(--gray);margin-bottom:3px;}
+.bar{height:7px;background:var(--border);border-radius:20px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--c);border-radius:20px;transition:width .6s ease;}
+.mood-row{display:flex;gap:6px;padding:0 13px 12px;flex-wrap:wrap;}
+.mood-btn{flex:1;min-width:48px;border:2px solid var(--border);border-radius:10px;padding:7px 3px;font-size:1rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--white);}
+.mood-btn.sel{border-color:var(--c);background:var(--cbg);}
+.mlbl{font-size:.52rem;color:var(--gray);display:block;margin-top:2px;}
+.refl-wrap{padding:0 13px 12px;}
+.rlbl{font-size:.65rem;font-weight:700;color:var(--gray);margin-bottom:4px;}
+.rta{width:100%;min-height:55px;border:1px solid var(--border);border-radius:8px;font-size:.68rem;font-family:inherit;padding:6px;resize:none;outline:none;line-height:1.5;}
+.rta:focus{border-color:var(--c2);}
+.save-bilan-btn{margin:0 13px 13px;display:block;width:calc(100% - 26px);background:var(--c);color:#fff;border:none;border-radius:10px;padding:11px;font-size:.78rem;font-weight:800;cursor:pointer;}
+
+/* ── EMAIL SETTINGS ── */
+.settings-section{margin-bottom:14px;}
+.settings-row{background:var(--white);border-radius:12px;padding:13px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:8px;}
+.sr-label{font-size:.68rem;font-weight:800;color:var(--gray);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;}
+.sr-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:.8rem;font-family:inherit;outline:none;color:var(--ink);}
+.sr-input:focus{border-color:var(--c2);}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bg);}
+.toggle-row:last-child{border-bottom:none;}
+.tgl-info .tgl-name{font-size:.78rem;font-weight:600;color:var(--ink);}
+.tgl-info .tgl-desc{font-size:.62rem;color:var(--gray);}
+.tgl{width:40px;height:22px;background:var(--border);border-radius:20px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.tgl.on{background:var(--c);}
+.tgl::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.tgl.on::after{transform:translateX(18px);}
+.email-note{background:var(--bbg);border:1px solid #BFDBFE;border-radius:10px;padding:11px;font-size:.7rem;color:#1D4ED8;line-height:1.55;}
+.test-btn{background:var(--c);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:.75rem;font-weight:800;cursor:pointer;margin-top:8px;width:100%;}
+.profile-avatar{width:60px;height:60px;background:linear-gradient(135deg,var(--c),var(--c2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 10px;}
+.profile-name{font-size:1rem;font-weight:900;text-align:center;margin-bottom:3px;}
+.profile-sub{font-size:.7rem;color:var(--gray);text-align:center;margin-bottom:16px;}
+
+/* ── JOURNAL ── */
+.j-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;}
+.j-hd h2{font-size:.92rem;font-weight:800;}
+.badge{background:var(--cbg);color:var(--c);font-size:.65rem;font-weight:800;border-radius:20px;padding:3px 9px;}
+.entry{background:var(--white);border-radius:12px;padding:12px;margin-bottom:9px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:3px solid var(--c);cursor:pointer;}
+.emeta{display:flex;justify-content:space-between;margin-bottom:5px;}
+.edate{font-size:.7rem;font-weight:800;color:var(--c);}
+.etime{font-size:.62rem;font-family:monospace;color:var(--gray);}
+.eprev{font-size:.68rem;color:var(--gray);line-height:1.5;}
+.epills{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+.pill{font-size:.58rem;border-radius:20px;padding:2px 7px;}
+.pdone{background:var(--gbg);color:var(--green);}
+.ptodo{background:var(--bg);color:var(--gray);}
+.pmood{background:var(--cbg);color:var(--c);}
+.ppts{background:var(--goldbg);color:var(--gold);}
+.empty{text-align:center;padding:40px 20px;color:var(--gray);}
+.empty .ico{font-size:2.5rem;margin-bottom:10px;}
+
+/* ── MENSUEL ── */
+.ms-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.ms-card{background:var(--white);border-radius:12px;padding:11px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.ms-num{font-size:1.4rem;font-weight:900;}
+.ms-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-top:2px;}
+.ms-card.c .ms-num{color:var(--c);}
+.ms-card.g .ms-num{color:var(--green);}
+.ms-card.b .ms-num{color:var(--blue);}
+.ms-card.p .ms-num{color:var(--purple);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dl{font-size:.55rem;text-align:center;color:var(--gray);font-weight:700;padding:3px 0;}
+.cal-d{height:30px;border-radius:7px;font-size:.62rem;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);color:var(--gray);cursor:default;}
+.cal-d.has{background:var(--cbg);color:var(--c);cursor:pointer;}
+.cal-d.tod{background:var(--c);color:#fff;}
+.cal-d.emp{background:transparent;}
+.dot2{width:4px;height:4px;border-radius:50%;background:var(--c);margin-top:1px;}
+.tod .dot2{background:#fff;}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;}
+.overlay.on{display:flex;}
+.modal{background:var(--white);border-radius:18px 18px 0 0;padding:18px;width:100%;max-height:82vh;overflow-y:auto;animation:up .25s ease-out;}
+@keyframes up{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.modal-title{font-size:.88rem;font-weight:800;color:var(--c);}
+.close-btn{background:var(--bg);border:none;border-radius:20px;padding:4px 10px;font-size:.7rem;cursor:pointer;color:var(--gray);}
+.ms-sec-title{font-size:.65rem;text-transform:uppercase;font-weight:800;color:var(--c);letter-spacing:.05em;margin-bottom:5px;}
+.ms-sec-body{font-size:.72rem;line-height:1.7;color:var(--gray);margin-bottom:11px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:9px 18px;border-radius:20px;font-size:.73rem;font-weight:700;z-index:300;transition:transform .3s;white-space:nowrap;max-width:90vw;text-align:center;}
+.toast.on{transform:translateX(-50%) translateY(0);}
+
+/* ── POINTS POPUP ── */
+.pts-popup{position:fixed;top:80px;left:50%;transform:translateX(-50%) scale(0);background:linear-gradient(135deg,var(--gold),#F59E0B);color:#fff;padding:10px 22px;border-radius:20px;font-size:.85rem;font-weight:900;z-index:400;transition:transform .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 20px rgba(217,119,6,.4);}
+.pts-popup.on{transform:translateX(-50%) scale(1);}
+
+/* ── NOTIF BANNER ── */
+.notif-banner{background:linear-gradient(135deg,var(--c),var(--c2));border-radius:14px;padding:13px 14px;margin-bottom:12px;display:none;}
+.notif-banner.on{display:flex;align-items:center;gap:10px;}
+.nb-ico{font-size:1.8rem;flex-shrink:0;}
+.nb-txt{flex:1;font-size:.78rem;font-weight:600;color:#fff;line-height:1.4;}
+.nb-btn{background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);border-radius:8px;padding:6px 10px;font-size:.68rem;font-weight:800;color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP WIZARD ══ -->
+<div id="setup">
+  <div class="setup-logo">⏱</div>
+  <div class="setup-title">PlannerPro</div>
+  <div class="setup-sub">Votre coach de vie intelligent</div>
+  <div class="step-dots"><div class="dot on" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div></div>
+
+  <!-- Step 1 -->
+  <div class="setup-card" id="step1">
+    <div class="setup-label">Votre prénom</div>
+    <input class="setup-input" id="setupName" placeholder="Ex: Franck" maxlength="30">
+    <div class="setup-label">Votre email (pour recevoir vos rappels)</div>
+    <input class="setup-input" id="setupEmail" type="email" placeholder="franck@email.com">
+    <button class="setup-btn" onclick="setupStep2()">Continuer →</button>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="setup-card" id="step2" style="display:none;">
+    <div class="setup-label">Choisissez vos habitudes quotidiennes</div>
+    <div class="habit-picker" id="habitPicker"></div>
+    <button class="setup-btn" onclick="setupStep3()">Continuer →</button>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="setup-card" id="step3" style="display:none;">
+    <div class="setup-label">Activez les notifications</div>
+    <p style="font-size:.75rem;opacity:.75;margin-bottom:14px;line-height:1.6;">Recevez des rappels personnalisés au bon moment. Votre assistant IA vous parlera directement dans l'app et vous enverra un résumé chaque matin par email.</p>
+    <button class="setup-btn" onclick="setupFinish()" id="notifBtn">✅ Activer et commencer !</button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<header>
+  <div class="hrow">
+    <div class="app-logo"><div class="ico">⏱</div><div class="name">Planner<span>Pro</span></div></div>
+    <div class="streak-badge"><span class="fire">🔥</span><span class="pts" id="streakPts">0 pts</span></div>
+  </div>
+  <div class="date-row">
+    <div class="date-txt" id="hDate"></div>
+    <div class="time-txt" id="hTime"></div>
+  </div>
+</header>
+
+<nav>
+  <div class="tab on" onclick="go('home')">🏠 Accueil</div>
+  <div class="tab" onclick="go('week')">📅 Semaine</div>
+  <div class="tab" onclick="go('bilan')">📊 Bilan</div>
+  <div class="tab" onclick="go('journal')">📖 Journal</div>
+  <div class="tab" onclick="go('mensuel')">📈 Mois</div>
+  <div class="tab" onclick="go('settings')">⚙️ Réglages</div>
+</nav>
+
+<div id="appContent">
+
+<!-- ══ HOME ══ -->
+<div class="view on" id="view-home">
+  <div class="notif-banner" id="notifBanner">
+    <div class="nb-ico">🔔</div>
+    <div class="nb-txt" id="notifBannerTxt">Activez les notifications pour recevoir vos rappels</div>
+    <button class="nb-btn" onclick="requestNotif()">Activer</button>
+  </div>
+
+  <div class="ai-banner" id="aiBanner">
+    <div class="ai-avatar">🤖</div>
+    <div class="ai-msg" id="aiMsg">Bonjour ! Je prépare votre message...</div>
+    <div class="ai-time" id="aiTime"></div>
+  </div>
+
+  <div class="score-section">
+    <div class="score-ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 80 80" width="80" height="80">
+        <circle cx="40" cy="40" r="33" fill="none" stroke="#F0EFED" stroke-width="8"/>
+        <circle cx="40" cy="40" r="33" fill="none" stroke="#E8603C" stroke-width="8"
+          stroke-linecap="round" stroke-dasharray="207" id="ringCircle"
+          stroke-dashoffset="207" transform="rotate(-90 40 40)" style="transition:stroke-dashoffset .8s ease;"/>
+        <text x="40" y="44" text-anchor="middle" font-size="16" font-weight="900" fill="#1C1917" id="ringPct">0%</text>
+      </svg>
+      <div class="ring-label">
+        <div class="ring-num" id="ringPts">0 pts</div>
+        <div class="ring-sub">Aujourd'hui</div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-mini g"><div class="num" id="sHabits">0/0</div><div class="lbl">Habitudes</div></div>
+      <div class="stat-mini o"><div class="num" id="sStreak">0</div><div class="lbl">🔥 Série</div></div>
+      <div class="stat-mini b"><div class="num" id="sWeek">0</div><div class="lbl">Pts semaine</div></div>
+      <div class="stat-mini p"><div class="num" id="sMonth">0</div><div class="lbl">Pts mois</div></div>
+    </div>
+  </div>
+
+  <div class="section-title">⚡ Habitudes du jour</div>
+  <div class="habits-list" id="habitsList"></div>
+
+  <div class="quick-row">
+    <button class="quick-btn" onclick="go('week')"><span class="qico">📅</span>Planner</button>
+    <button class="quick-btn" onclick="go('bilan')"><span class="qico">📊</span>Bilan</button>
+    <button class="quick-btn primary" onclick="saveDay()"><span class="qico">💾</span>Sauver</button>
+  </div>
+</div>
+
+<!-- ══ WEEK ══ -->
+<div class="view" id="view-week">
+  <div class="card">
+    <div class="card-hd"><h2>⏱ Blocs de temps — semaine</h2></div>
+    <div class="week-scroll">
+      <table><thead id="wHead"></thead><tbody id="wBody"></tbody></table>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+    <div style="background:var(--white);border-radius:14px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+      <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--c);margin-bottom:7px;">✅ À faire</div>
+      <div id="todoList"></div>
+      <button style="font-size:.63rem;color:var(--c);border:none;background:none;cursor:pointer;font-weight:700;margin-top:3px;" onclick="addTodo()">+ Ajouter</button>
+    </div>
+    <div style="background:var(--white);border-radius:14px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+      <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--c);margin-bottom:7px;">📝 Notes</div>
+      <textarea style="width:100%;min-height:80px;border:1px solid var(--border);border-radius:8px;font-size:.68rem;font-family:inherit;padding:6px;resize:none;outline:none;" id="notesArea" placeholder="Idées, rappels..."></textarea>
+    </div>
+  </div>
+  <button onclick="saveDay()" style="display:block;width:100%;background:var(--c);color:#fff;border:none;border-radius:12px;padding:13px;font-size:.85rem;font-weight:800;cursor:pointer;">💾 Sauvegarder la journée →</button>
+</div>
+
+<!-- ══ BILAN ══ -->
+<div class="view" id="view-bilan">
+  <div class="card">
+    <div class="card-hd"><h2>📊 Bilan du <span id="bilanDate"></span></h2></div>
+    <div class="bilan-grid" id="bilanStats"></div>
+    <div class="bar-wrap">
+      <div class="bar-lbl"><span>Taux de complétion</span><span id="bilanPct">0%</span></div>
+      <div class="bar"><div class="bar-fill" id="bilanBar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Habitudes bilan -->
+    <div style="padding:0 13px 10px;">
+      <div style="font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);margin-bottom:6px;">Habitudes aujourd'hui</div>
+      <div id="bilanHabits"></div>
+    </div>
+
+    <div class="card-hd" style="border-top:1px solid var(--border);"><h2>😊 Humeur du jour</h2></div>
+    <div class="mood-row">
+      <div class="mood-btn" data-mood="😫" onclick="selectMood(this)">😫<span class="mlbl">Épuisé</span></div>
+      <div class="mood-btn" data-mood="😕" onclick="selectMood(this)">😕<span class="mlbl">Difficile</span></div>
+      <div class="mood-btn" data-mood="😐" onclick="selectMood(this)">😐<span class="mlbl">Neutre</span></div>
+      <div class="mood-btn" data-mood="🙂" onclick="selectMood(this)">🙂<span class="mlbl">Bien</span></div>
+      <div class="mood-btn" data-mood="🚀" onclick="selectMood(this)">🚀<span class="mlbl">Top !</span></div>
+    </div>
+    <div class="card-hd" style="border-top:1px solid var(--border);"><h2>✍️ Réflexion</h2></div>
+    <div class="refl-wrap">
+      <div class="rlbl">✨ Ce qui s'est bien passé</div>
+      <textarea class="rta" id="reflBien" placeholder="Mes victoires du jour..."></textarea>
+      <div class="rlbl" style="margin-top:8px;">🔧 Ce que j'améliore demain</div>
+      <textarea class="rta" id="reflAmelio" placeholder="Ce que je ferai différemment..."></textarea>
+    </div>
+    <button class="save-bilan-btn" onclick="saveBilan()">💾 Enregistrer le bilan</button>
+  </div>
+</div>
+
+<!-- ══ JOURNAL ══ -->
+<div class="view" id="view-journal">
+  <div class="j-hd"><h2>📖 Journal</h2><span class="badge" id="jCount">0</span></div>
+  <div id="journalList"></div>
+</div>
+
+<!-- ══ MENSUEL ══ -->
+<div class="view" id="view-mensuel">
+  <div id="mensuelContent"></div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div class="view" id="view-settings">
+  <div style="background:var(--white);border-radius:14px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:12px;text-align:center;">
+    <div class="profile-avatar" id="profileAvatar">F</div>
+    <div class="profile-name" id="profileName">Franck</div>
+    <div class="profile-sub" id="profileEmail">email@exemple.com</div>
+  </div>
+
+  <div class="section-title">📧 Email & Notifications</div>
+  <div class="settings-row">
+    <div class="sr-label">Email de réception</div>
+    <input class="sr-input" id="emailInput" type="email" placeholder="votre@email.com">
+    <div style="margin-top:10px;" class="sr-label">Notifications dans l'app</div>
+    <div class="toggle-row">
+      <div class="tgl-info"><div class="tgl-name">Rappels habitudes</div><div class="tgl-desc">Alerte au moment de chaque habitude</div></div>
+      <div class="tgl on" id="tglNotif" onclick="toggleSetting('notif')"></div>
+    </div>
+    <div class="toggle-row">
+      <div class="tgl-info"><div class="tgl-name">Message du matin</div><div class="tgl-desc">Résumé IA à 5h du matin</div></div>
+      <div class="tgl on" id="tglMorning" onclick="toggleSetting('morning')"></div>
+    </div>
+    <div class="toggle-row">
+      <div class="tgl-info"><div class="tgl-name">Bilan du soir</div><div class="tgl-desc">Récapitulatif à 21h</div></div>
+      <div class="tgl on" id="tglEvening" onclick="toggleSetting('evening')"></div>
+    </div>
+  </div>
+
+  <div class="email-note">
+    📬 <strong>Comment fonctionne l'email :</strong> L'app génère un lien <em>mailto:</em> avec votre résumé personnalisé. Vous pouvez aussi copier le résumé et l'envoyer depuis votre application mail. Pour des envois automatiques complets, connectez l'app à un service comme <strong>EmailJS</strong> ou <strong>Zapier</strong>.
+  </div>
+  <button class="test-btn" onclick="sendTestEmail()">📧 Envoyer un résumé test par email</button>
+
+  <div class="section-title" style="margin-top:14px;">🎯 Mes habitudes</div>
+  <div class="settings-row">
+    <div id="habitsSettingsList"></div>
+    <button onclick="go('home');showToast('Modifiez vos habitudes depuis l\'accueil')" style="font-size:.7rem;color:var(--c);border:none;background:none;cursor:pointer;font-weight:700;margin-top:6px;">+ Gérer les habitudes</button>
+  </div>
+
+  <button onclick="resetApp()" style="width:100%;background:none;border:2px solid #EF4444;color:#EF4444;border-radius:12px;padding:11px;font-size:.78rem;font-weight:800;cursor:pointer;margin-top:8px;">🗑️ Réinitialiser l'application</button>
+</div>
+
+</div><!-- end appContent -->
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- POINTS POPUP -->
+<div class="pts-popup" id="ptsPopup">+1 point ⭐</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA & CONSTANTS
+// ══════════════════════════════════════════════
+const DAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const DAYS_LONG = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const MONTHS_S = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+const HOURS = ['5h','6h','7h','8h','9h','10h','11h','12h','13h','14h','15h','16h','17h','18h','19h','20h','21h','22h','23h'];
+const HOUR_NUMS = [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+
+const DEFAULT_HABITS = [
+  {id:'prayer',  name:'Prière',     icon:'🤲', hour:5,  pts:2, msg:'C\'est l\'heure de la prière. Un moment de connexion et de paix.'},
+  {id:'sport',   name:'Sport',      icon:'🏃', hour:7,  pts:3, msg:'L\'heure du sport ! Votre corps vous remerciera.'},
+  {id:'reading', name:'Lecture',    icon:'📚', hour:8,  pts:2, msg:'30 minutes de lecture pour nourrir votre esprit.'},
+  {id:'work',    name:'Travail',    icon:'💼', hour:9,  pts:1, msg:'Plein de productivité pour cette session de travail !'},
+  {id:'meditate',name:'Méditation', icon:'🧘', hour:6,  pts:2, msg:'Prenez un moment pour vous recentrer.'},
+  {id:'journal_h',name:'Journal',   icon:'✍️', hour:21, pts:1, msg:'Temps de réflexion et d\'écriture.'},
+  {id:'water',   name:'Hydratation',icon:'💧', hour:8,  pts:1, msg:'Pensez à bien vous hydrater aujourd\'hui !'},
+  {id:'sleep',   name:'Coucher tôt',icon:'😴', hour:22, pts:2, msg:'L\'heure de dormir pour récupérer.'},
+  {id:'gratitude',name:'Gratitude', icon:'🙏', hour:7,  pts:2, msg:'Notez 3 choses pour lesquelles vous êtes reconnaissant.'},
+  {id:'cold',    name:'Douche froide',icon:'🚿',hour:6, pts:3, msg:'Démarrez fort avec une douche froide !'},
+];
+
+const AI_TIPS = {
+  prayer:   ['La prière est le fondement de votre journée. Elle vous ancre.','Chaque prière est une victoire sur le sommeil. Bravo !'],
+  sport:    ['Le sport matinal booste votre énergie pour toute la journée !','Votre corps est votre premier outil. Prenez-en soin.'],
+  reading:  ['20 pages par jour = 12 livres par an. Vous progressez !','La lecture enrichit votre vocabulaire et votre pensée.'],
+  meditate: ['5 minutes suffisent pour calmer le mental.','La constance fait la différence, pas la durée.'],
+  default:  ['Chaque petite action compte. Continuez !','La discipline d\'aujourd\'hui est la liberté de demain.'],
+};
+
+let selectedMood = '';
+let todos = [{text:'',done:false}];
+let currentView = 'home';
+let SW_REG = null;
+
+// ══════════════════════════════════════════════
+//  STORAGE HELPERS
+// ══════════════════════════════════════════════
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(k)
+};
+function dayKey(d=new Date()) { return `day_${d.getFullYear()}_${d.getMonth()+1}_${d.getDate()}`; }
+function todayKey() { return dayKey(); }
+function getDay(k) { return LS.get(k) || null; }
+function getJournal() { return LS.get('planner_journal') || []; }
+function getProfile() { return LS.get('profile') || {}; }
+function getSettings() { return LS.get('settings') || {notif:true,morning:true,evening:true}; }
+function getHabits() { return LS.get('user_habits') || []; }
+function getPoints() { return LS.get('points') || {today:0,week:0,month:0,streak:0,lastDate:''}; }
+
+// ══════════════════════════════════════════════
+//  SETUP WIZARD
+// ══════════════════════════════════════════════
+const SETUP_HABITS = DEFAULT_HABITS;
+let selectedHabits = new Set();
+
+function initSetup() {
+  const profile = getProfile();
+  if (profile.name) { document.getElementById('setup').classList.add('hidden'); initApp(); return; }
+  // Build habit picker
+  const picker = document.getElementById('habitPicker');
+  SETUP_HABITS.forEach(h => {
+    const div = document.createElement('div');
+    div.className = 'habit-opt'; div.dataset.id = h.id;
+    div.innerHTML = `<div class="hico">${h.icon}</div><div class="hinfo"><div class="hname">${h.name}</div><div class="htime">${h.hour}h00 · ${h.pts} pt${h.pts>1?'s':''}</div></div><div class="hchk"></div>`;
+    div.onclick = () => {
+      if (selectedHabits.has(h.id)) selectedHabits.delete(h.id);
+      else selectedHabits.add(h.id);
+      div.classList.toggle('sel');
+    };
+    picker.appendChild(div);
+  });
+}
+
+function setupStep2() {
+  const name = document.getElementById('setupName').value.trim();
+  const email = document.getElementById('setupEmail').value.trim();
+  if (!name) { showToast('Entrez votre prénom !'); return; }
+  LS.set('profile', { name, email });
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  document.getElementById('d2').classList.add('on');
+}
+
+function setupStep3() {
+  if (selectedHabits.size === 0) { showToast('Choisissez au moins une habitude !'); return; }
+  const habits = SETUP_HABITS.filter(h => selectedHabits.has(h.id));
+  LS.set('user_habits', habits);
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step3').style.display = 'block';
+  document.getElementById('d3').classList.add('on');
+}
+
+async function setupFinish() {
+  await requestNotif();
+  document.getElementById('setup').classList.add('hidden');
+  initApp();
+}
+
+// ══════════════════════════════════════════════
+//  PWA / SERVICE WORKER
+// ══════════════════════════════════════════════
+async function initSW() {
+  if ('serviceWorker' in navigator) {
+    try {
+      SW_REG = await navigator.serviceWorker.register('./sw.js');
+      navigator.serviceWorker.addEventListener('message', e => {
+        if (e.data?.type === 'HABIT_DONE') awardPoint(e.data.habitTitle);
+      });
+    } catch(e) { console.log('SW error:', e); }
+  }
+}
+
+async function requestNotif() {
+  if (!('Notification' in window)) return;
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    document.getElementById('notifBanner').classList.remove('on');
+    scheduleAllNotifications();
+    showToast('🔔 Notifications activées !');
+  } else {
+    document.getElementById('notifBanner').classList.add('on');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  NOTIFICATIONS SCHEDULER
+// ══════════════════════════════════════════════
+function scheduleAllNotifications() {
+  if (Notification.permission !== 'granted') return;
+  const habits = getHabits();
+  const profile = getProfile();
+  const name = profile.name || 'toi';
+  const now = new Date();
+
+  habits.forEach(h => {
+    const target = new Date();
+    target.setHours(h.hour, 0, 0, 0);
+    let delay = target - now;
+    if (delay < 0) delay += 86400000; // tomorrow
+    if (delay > 0 && delay < 86400000) {
+      const tips = AI_TIPS[h.id] || AI_TIPS.default;
+      const tip = tips[Math.floor(Math.random()*tips.length)];
+      if (SW_REG) {
+        SW_REG.active?.postMessage({
+          type:'SCHEDULE_NOTIF', delay,
+          title: `${h.icon} ${h.name} — ${h.hour}h00`,
+          body: `Bonjour ${name} ! Il est ${h.hour}h. ${h.msg} ${tip}`
+        });
+      }
+    }
+  });
+
+  // Morning summary at 5:00
+  const settings = getSettings();
+  if (settings.morning) {
+    const morning = new Date(); morning.setHours(5,0,0,0);
+    let mDelay = morning - now;
+    if (mDelay < 0) mDelay += 86400000;
+    if (SW_REG) {
+      SW_REG.active?.postMessage({
+        type:'SCHEDULE_NOTIF', delay: mDelay,
+        title: `☀️ Bonjour ${name} !`,
+        body: generateMorningSummary()
+      });
+    }
+  }
+
+  // Evening bilan at 21:00
+  if (settings.evening) {
+    const evening = new Date(); evening.setHours(21,0,0,0);
+    let eDelay = evening - now;
+    if (eDelay < 0) eDelay += 86400000;
+    if (SW_REG) {
+      SW_REG.active?.postMessage({
+        type:'SCHEDULE_NOTIF', delay: eDelay,
+        title: `🌙 Bilan du soir`,
+        body: generateEveningSummary()
+      });
+    }
+  }
+}
+
+// ══════════════════════════════════════════════
+//  AI MESSAGE GENERATOR
+// ══════════════════════════════════════════════
+function generateAIMessage() {
+  const now = new Date();
+  const h = now.getHours();
+  const profile = getProfile();
+  const name = profile.name || 'toi';
+  const habits = getHabits();
+  const todayData = getDay(todayKey()) || {};
+  const done = habits.filter(hb => todayData.habitsDone?.[hb.id]);
+  const pts = getPoints();
+
+  // Next upcoming habit
+  const upcoming = habits.filter(hb => hb.hour >= h && !todayData.habitsDone?.[hb.id]).sort((a,b)=>a.hour-b.hour)[0];
+
+  let msg = '';
+  if (h >= 4 && h < 6) {
+    msg = `Bonjour <strong>${name}</strong> ! 🌅 Il est ${h}h, une nouvelle journée commence. ${habits[0] ? `C'est l'heure de votre <strong>${habits[0].name}</strong>.` : 'Préparez-vous pour une belle journée.'} Vous avez tout pour réussir !`;
+  } else if (h >= 6 && h < 9) {
+    msg = `${name}, votre matinée est là ! ☀️ ${upcoming ? `Prochain rendez-vous : <strong>${upcoming.icon} ${upcoming.name}</strong> à ${upcoming.hour}h.` : ''} ${done.length > 0 ? `Déjà <strong>${done.length} habitude${done.length>1?'s':''}</strong> accomplie${done.length>1?'s':''} ce matin. Excellent !` : 'Lancez votre première habitude du jour !'}`;
+  } else if (h >= 9 && h < 12) {
+    msg = `En plein élan ${name} ! 💪 ${done.length > 0 ? `<strong>${done.length} habitude${done.length>1?'s':''}</strong> cochée${done.length>1?'s':''}. ` : ''}${upcoming ? `N'oubliez pas <strong>${upcoming.name}</strong> à ${upcoming.hour}h.` : 'Restez concentré sur vos objectifs.'}`;
+  } else if (h >= 12 && h < 14) {
+    msg = `Mi-journée ${name} ! 🥗 Pause méritée. ${done.length} habitude${done.length>1?'s':''} accomplie${done.length>1?'s':''}. ${pts.today >= 5 ? `<strong>${pts.today} points</strong> gagnés aujourd'hui. Impressionnant !` : 'L\'après-midi est là pour compléter vos objectifs.'}`;
+  } else if (h >= 14 && h < 18) {
+    msg = `Afternoon, ${name} ! ☕ ${upcoming ? `Il vous reste <strong>${upcoming.name}</strong> à ${upcoming.hour}h.` : 'Toutes vos habitudes sont faites. Bravo !'} ${pts.today} pts au compteur aujourd'hui.`;
+  } else if (h >= 18 && h < 21) {
+    msg = `Belle soirée ${name} 🌆. Journée de <strong>${pts.today} points</strong>. ${done.length}/${habits.length} habitudes accomplies. Prenez le temps de noter votre bilan.`;
+  } else {
+    msg = `Bonsoir ${name} 🌙. Il est temps de se reposer. Vous avez cumulé <strong>${pts.today} points</strong> et <strong>${pts.streak} jours</strong> de série. Continuez demain !`;
+  }
+
+  document.getElementById('aiMsg').innerHTML = msg;
+  document.getElementById('aiTime').textContent = `Mis à jour à ${String(h).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+
+function generateMorningSummary() {
+  const profile = getProfile();
+  const name = profile.name || '';
+  const habits = getHabits();
+  const pts = getPoints();
+  return `Bonjour ${name} ! Nouvelle journée = nouvelle chance. Vous avez ${habits.length} habitudes à accomplir pour ${habits.reduce((s,h)=>s+h.pts,0)} points. Série actuelle : ${pts.streak} jours 🔥`;
+}
+
+function generateEveningSummary() {
+  const profile = getProfile();
+  const name = profile.name || '';
+  const pts = getPoints();
+  const today = getDay(todayKey()) || {};
+  const habits = getHabits();
+  const done = habits.filter(h => today.habitsDone?.[h.id]).length;
+  return `Bilan de ${name} : ${done}/${habits.length} habitudes ✅ ${pts.today} points gagnés. ${pts.streak} jours de série 🔥 Reposez-vous bien !`;
+}
+
+// ══════════════════════════════════════════════
+//  HABITS
+// ══════════════════════════════════════════════
+function renderHabits() {
+  const habits = getHabits();
+  const todayData = getDay(todayKey()) || {};
+  const now = new Date();
+  const h = now.getHours();
+  const list = document.getElementById('habitsList');
+  if (!list) return;
+  if (!habits.length) { list.innerHTML = '<div class="empty"><div class="ico">🎯</div><p>Aucune habitude configurée.</p></div>'; return; }
+  list.innerHTML = '';
+  habits.forEach(habit => {
+    const isDone = !!todayData.habitsDone?.[habit.id];
+    const isActive = habit.hour === h;
+    const div = document.createElement('div');
+    div.className = `habit-card ${isDone?'done':''} ${isActive&&!isDone?'active':''}`;
+    div.innerHTML = `<div class="habit-ico">${habit.icon}</div>
+      <div class="habit-info">
+        <div class="habit-name ${isDone?'done-txt':''}">${habit.name}</div>
+        <div class="habit-meta">${habit.hour}h00 · ${habit.pts} pt${habit.pts>1?'s':''} ${isActive&&!isDone?'· <span style="color:var(--c);font-weight:700;">Maintenant !</span>':''}</div>
+      </div>
+      <div class="habit-pts">+${habit.pts} pt${habit.pts>1?'s':''}</div>
+      <div class="habit-check"></div>`;
+    div.onclick = () => toggleHabit(habit.id);
+    list.appendChild(div);
+  });
+}
+
+function toggleHabit(id) {
+  const k = todayKey();
+  const data = getDay(k) || { date: new Date().toISOString(), blocks:[], todos:[], notes:'', habitsDone:{} };
+  if (!data.habitsDone) data.habitsDone = {};
+  const habit = getHabits().find(h => h.id === id);
+  if (!habit) return;
+  const wasDone = !!data.habitsDone[id];
+  data.habitsDone[id] = !wasDone;
+  LS.set(k, data);
+
+  if (!wasDone) {
+    awardPoint(habit.name, habit.pts);
+  } else {
+    deductPoint(habit.pts);
+  }
+  renderHabits();
+  updateHomeStats();
+  updateJournal(data);
+}
+
+function awardPoint(name, pts=1) {
+  const p = getPoints();
+  const today = new Date().toDateString();
+  if (p.lastDate !== today) { p.today = 0; p.lastDate = today; }
+  p.today += pts;
+  p.week += pts;
+  p.month += pts;
+  // Streak
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  if (p.lastDate === yesterday.toDateString()) p.streak++;
+  else if (p.lastDate !== today) p.streak = 1;
+  p.lastDate = today;
+  LS.set('points', p);
+  showPtsPopup(`+${pts} pt${pts>1?'s':''} ⭐`);
+  updateHomeStats();
+  showToast(`✅ ${name} accompli ! +${pts} pt${pts>1?'s':''}`);
+}
+
+function deductPoint(pts=1) {
+  const p = getPoints();
+  p.today = Math.max(0, p.today - pts);
+  p.week = Math.max(0, p.week - pts);
+  p.month = Math.max(0, p.month - pts);
+  LS.set('points', p);
+  updateHomeStats();
+}
+
+function updateHomeStats() {
+  const p = getPoints();
+  const habits = getHabits();
+  const todayData = getDay(todayKey()) || {};
+  const done = habits.filter(h => todayData.habitsDone?.[h.id]).length;
+  const maxPts = habits.reduce((s,h)=>s+h.pts,0);
+  const pct = maxPts > 0 ? Math.round((p.today / maxPts)*100) : 0;
+
+  document.getElementById('streakPts').textContent = `${p.today} pts`;
+  document.getElementById('ringPts').textContent = `${p.today} pts`;
+  document.getElementById('ringPct').textContent = `${pct}%`;
+  document.getElementById('sHabits').textContent = `${done}/${habits.length}`;
+  document.getElementById('sStreak').textContent = p.streak || 0;
+  document.getElementById('sWeek').textContent = p.week || 0;
+  document.getElementById('sMonth').textContent = p.month || 0;
+
+  // Ring animation
+  const circ = 207;
+  const offset = circ - (circ * pct / 100);
+  const ring = document.getElementById('ringCircle');
+  if (ring) ring.style.strokeDashoffset = offset;
+}
+
+// ══════════════════════════════════════════════
+//  CLOCK
+// ══════════════════════════════════════════════
+function clock() {
+  const n = new Date();
+  const h = n.getHours(), m = String(n.getMinutes()).padStart(2,'0'), s = String(n.getSeconds()).padStart(2,'0');
+  const el = document.getElementById('hDate');
+  const tl = document.getElementById('hTime');
+  if (el) el.textContent = `${DAYS_LONG[n.getDay()]} ${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}`;
+  if (tl) tl.textContent = `${String(h).padStart(2,'0')}:${m}:${s}`;
+  document.querySelectorAll('tr[data-h]').forEach(tr => tr.classList.toggle('nr', parseInt(tr.dataset.h)===h));
+  // Refresh AI message every 5 min
+  if (parseInt(s) === 0 && parseInt(m) % 5 === 0) generateAIMessage();
+}
+
+// ══════════════════════════════════════════════
+//  WEEK TABLE
+// ══════════════════════════════════════════════
+function getWeekDates() {
+  const now = new Date(), dow = now.getDay();
+  const mon = new Date(now); mon.setDate(now.getDate() - (dow===0?6:dow-1));
+  return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d; });
+}
+
+function buildWeek() {
+  const dates = getWeekDates();
+  const today = new Date();
+  const ti = dates.findIndex(d => d.toDateString()===today.toDateString());
+  const thead = document.getElementById('wHead');
+  if (!thead) return;
+  thead.innerHTML = `<tr><th>Heure</th>${dates.map((d,i)=>`<th class="${i===ti?'tc':''}">${DAYS_FR[d.getDay()]}<br><span style="font-weight:400;font-size:.55rem;">${d.getDate()}/${d.getMonth()+1}</span></th>`).join('')}</tr>`;
+  const tbody = document.getElementById('wBody');
+  tbody.innerHTML = '';
+  HOURS.forEach((hr,ri) => {
+    const tr = document.createElement('tr'); tr.dataset.h = HOUR_NUMS[ri];
+    let cells = `<td>${hr}</td>`;
+    dates.forEach((d,ci) => {
+      const k = dayKey(d), s = getDay(k);
+      const v = s?.blocks?.[ri]||'';
+      cells += `<td class="${ci===ti?'today-cell':''}"><textarea class="bi" rows="1" data-key="${k}" data-ri="${ri}" oninput="autoGrow(this)">${v}</textarea></td>`;
+    });
+    tr.innerHTML = cells; tbody.appendChild(tr);
+  });
+}
+
+function autoGrow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+
+// ══════════════════════════════════════════════
+//  TODOS
+// ══════════════════════════════════════════════
+function loadTodos() {
+  const s = getDay(todayKey());
+  todos = s?.todos || [{text:'',done:false}];
+  if (document.getElementById('notesArea')) document.getElementById('notesArea').value = s?.notes||'';
+  renderTodos();
+}
+
+function renderTodos() {
+  const c = document.getElementById('todoList'); if(!c) return;
+  c.innerHTML='';
+  todos.forEach((t,i)=>{
+    const d=document.createElement('div'); d.style.cssText='display:flex;align-items:center;gap:5px;margin-bottom:5px;';
+    d.innerHTML=`<div style="width:14px;height:14px;border:2px solid var(--c);border-radius:4px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;${t.done?'background:var(--c);':''}transition:all .2s;" onclick="toggleTodo(${i})">${t.done?'<span style="color:#fff;font-size:9px;font-weight:900;">✓</span>':''}</div>
+      <input style="flex:1;border:none;border-bottom:1px solid var(--border);font-size:.67rem;font-family:inherit;color:var(--ink);background:transparent;outline:none;${t.done?'text-decoration:line-through;color:var(--gray);':''}" value="${t.text.replace(/"/g,'&quot;')}" placeholder="Tâche..." oninput="updateTodo(${i},this.value)" onkeydown="if(event.key==='Enter')addTodo()">`;
+    c.appendChild(d);
+  });
+}
+
+function toggleTodo(i){todos[i].done=!todos[i].done;renderTodos();}
+function updateTodo(i,v){todos[i].text=v;}
+function addTodo(){todos.push({text:'',done:false});renderTodos();setTimeout(()=>{const ins=document.querySelectorAll('#todoList input');if(ins.length)ins[ins.length-1].focus();},40);}
+
+// ══════════════════════════════════════════════
+//  SAVE / JOURNAL
+// ══════════════════════════════════════════════
+function saveDay() {
+  const k = todayKey();
+  const blocks = HOURS.map((_,ri)=>{const el=document.querySelector(`[data-key="${k}"][data-ri="${ri}"]`);return el?el.value.trim():'';});
+  const existing = getDay(k) || {};
+  const entry = { ...existing, date:existing.date||new Date().toISOString(), blocks, todos:todos.filter(t=>t.text.trim()), notes:document.getElementById('notesArea')?.value.trim()||'' };
+  LS.set(k, entry);
+  updateJournal(entry);
+  showToast('✅ Journée sauvegardée !');
+}
+
+function saveBilan() {
+  const k = todayKey();
+  const existing = getDay(k) || {date:new Date().toISOString(),blocks:[],todos:[],notes:''};
+  existing.mood = selectedMood;
+  existing.reflBien = document.getElementById('reflBien').value.trim();
+  existing.reflAmelio = document.getElementById('reflAmelio').value.trim();
+  LS.set(k, existing);
+  updateJournal(existing);
+  showToast('📊 Bilan enregistré !');
+}
+
+function updateJournal(entry) {
+  const j = getJournal();
+  const idx = j.findIndex(e=>e.date?.slice(0,10)===entry.date.slice(0,10));
+  if(idx>=0) j[idx]={...j[idx],...entry}; else j.unshift(entry);
+  LS.set('planner_journal',j);
+}
+
+// ══════════════════════════════════════════════
+//  BILAN
+// ══════════════════════════════════════════════
+function renderBilan() {
+  const n = new Date();
+  document.getElementById('bilanDate').textContent = `${n.getDate()} ${MONTHS[n.getMonth()]}`;
+  const saved = getDay(todayKey())||{};
+  const habits = getHabits();
+  const blocks = saved.blocks||[];
+  const todos_s = saved.todos||[];
+  const filled = blocks.filter(b=>b.trim()).length;
+  const done = todos_s.filter(t=>t.done).length;
+  const habitsDone = habits.filter(h=>saved.habitsDone?.[h.id]).length;
+  const pts = getPoints();
+  const pct = Math.round(((habitsDone/Math.max(habits.length,1))*100));
+  document.getElementById('bilanStats').innerHTML = `
+    <div class="bstat"><div class="bn">${filled}</div><div class="bl">Blocs</div></div>
+    <div class="bstat"><div class="bn">${done}/${todos_s.length}</div><div class="bl">Tâches</div></div>
+    <div class="bstat"><div class="bn">${pts.today}pts</div><div class="bl">Score</div></div>`;
+  document.getElementById('bilanPct').textContent = pct+'%';
+  document.getElementById('bilanBar').style.width = pct+'%';
+  // Habits list
+  const bh = document.getElementById('bilanHabits');
+  bh.innerHTML = habits.map(h=>{
+    const d=!!saved.habitsDone?.[h.id];
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bg);">
+      <span>${h.icon}</span>
+      <span style="flex:1;font-size:.72rem;${d?'text-decoration:line-through;color:var(--gray);':''}">${h.name}</span>
+      <span style="font-size:.7rem;font-weight:700;color:${d?'var(--green)':'var(--border)'};">${d?'✅ +'+h.pts+'pts':'⬜'}</span>
+    </div>`;
+  }).join('');
+  // Restore mood
+  if(saved.mood){selectedMood=saved.mood;document.querySelectorAll('.mood-btn').forEach(b=>b.classList.toggle('sel',b.dataset.mood===saved.mood));}
+  if(saved.reflBien) document.getElementById('reflBien').value=saved.reflBien;
+  if(saved.reflAmelio) document.getElementById('reflAmelio').value=saved.reflAmelio;
+}
+
+function selectMood(el){document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');selectedMood=el.dataset.mood;}
+
+// ══════════════════════════════════════════════
+//  JOURNAL
+// ══════════════════════════════════════════════
+function renderJournal() {
+  const j = getJournal();
+  document.getElementById('jCount').textContent = `${j.length} entrée${j.length>1?'s':''}`;
+  const list = document.getElementById('journalList');
+  if (!j.length) { list.innerHTML='<div class="empty"><div class="ico">📖</div><p>Sauvegardez une journée<br>pour commencer votre journal.</p></div>'; return; }
+  list.innerHTML = j.map((e,i)=>{
+    const d=new Date(e.date);
+    const ds=`${DAYS_LONG[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    const ts=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const filled=(e.blocks||[]).filter(b=>b.trim()).length;
+    const doneT=(e.todos||[]).filter(t=>t.done).length;
+    const total=(e.todos||[]).length;
+    const habits=getHabits();
+    const hDone=habits.filter(h=>e.habitsDone?.[h.id]).length;
+    const pts_e=habits.filter(h=>e.habitsDone?.[h.id]).reduce((s,h)=>s+h.pts,0);
+    return `<div class="entry" onclick="showEntry(${i})">
+      <div class="emeta"><div class="edate">${ds}</div><div class="etime">${ts}</div></div>
+      <div class="eprev">${filled} bloc(s) · ${doneT}/${total} tâches · ${hDone}/${habits.length} habitudes${e.mood?' · '+e.mood:''}</div>
+      <div class="epills">
+        ${pts_e?`<span class="pill ppts">⭐ ${pts_e} pts</span>`:''}
+        ${e.mood?`<span class="pill pmood">${e.mood}</span>`:''}
+        ${(e.todos||[]).slice(0,3).map(t=>`<span class="pill ${t.done?'pdone':'ptodo'}">${t.done?'✓':''} ${t.text.slice(0,15)}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showEntry(i) {
+  const e = getJournal()[i]; if(!e) return;
+  const d=new Date(e.date);
+  const ds=`${DAYS_LONG[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('modalTitle').textContent=`📅 ${ds}`;
+  const habits=getHabits();
+  const filledB=(e.blocks||[]).map((b,i)=>b.trim()?`<div style="margin-bottom:3px;"><strong>${HOURS[i]}</strong> — ${b}</div>`:'').filter(Boolean).join('');
+  const todosH=(e.todos||[]).map(t=>`<div>${t.done?'✅':'⬜'} ${t.text}</div>`).join('')||'<p>Aucune tâche.</p>';
+  const habitsH=habits.map(h=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">${h.icon} <span>${h.name}</span> <span style="margin-left:auto;color:${e.habitsDone?.[h.id]?'var(--green)':'var(--gray)'};">${e.habitsDone?.[h.id]?`✅ +${h.pts}pts`:'⬜'}</span></div>`).join('');
+  const ptsT=habits.filter(h=>e.habitsDone?.[h.id]).reduce((s,h)=>s+h.pts,0);
+  document.getElementById('modalBody').innerHTML=`
+    <div class="ms-sec-title">⭐ Score du jour</div><div class="ms-sec-body" style="font-size:1.2rem;font-weight:900;color:var(--c);">${ptsT} points</div>
+    <div class="ms-sec-title">🎯 Habitudes</div><div class="ms-sec-body">${habitsH}</div>
+    <div class="ms-sec-title">⏱ Blocs planifiés</div><div class="ms-sec-body">${filledB||'Aucun bloc.'}</div>
+    <div class="ms-sec-title">✅ Tâches</div><div class="ms-sec-body">${todosH}</div>
+    ${e.mood?`<div class="ms-sec-title">Humeur</div><div class="ms-sec-body" style="font-size:1.2rem;">${e.mood}</div>`:''}
+    ${e.reflBien?`<div class="ms-sec-title">✨ Ce qui s'est bien passé</div><div class="ms-sec-body">${e.reflBien}</div>`:''}
+    ${e.reflAmelio?`<div class="ms-sec-title">🔧 À améliorer</div><div class="ms-sec-body">${e.reflAmelio}</div>`:''}
+    ${e.notes?`<div class="ms-sec-title">📝 Notes</div><div class="ms-sec-body" style="font-style:italic;">${e.notes}</div>`:''}`;
+  document.getElementById('overlay').classList.add('on');
+}
+
+function closeModal(e){if(!e||e.target===document.getElementById('overlay')||!e.target.closest?.('.modal'))document.getElementById('overlay').classList.remove('on');}
+
+// ══════════════════════════════════════════════
+//  MENSUEL
+// ══════════════════════════════════════════════
+function renderMensuel() {
+  const now=new Date(),y=now.getFullYear(),mo=now.getMonth();
+  const dim=new Date(y,mo+1,0).getDate();
+  const j=getJournal();
+  const map={};
+  j.forEach(e=>{const d=new Date(e.date);if(d.getFullYear()===y&&d.getMonth()===mo)map[d.getDate()]=e;});
+  const days=Object.keys(map).length;
+  const habits=getHabits();
+  const allPts=Object.values(map).reduce((s,e)=>s+habits.filter(h=>e.habitsDone?.[h.id]).reduce((ss,h)=>ss+h.pts,0),0);
+  const allTodos=Object.values(map).flatMap(e=>e.todos||[]);
+  const doneTodos=allTodos.filter(t=>t.done).length;
+  const moods=Object.values(map).map(e=>e.mood).filter(Boolean);
+  const ms={'😫':1,'😕':2,'😐':3,'🙂':4,'🚀':5};
+  const avgMood=moods.length?(moods.reduce((s,m)=>s+(ms[m]||3),0)/moods.length).toFixed(1):'—';
+  // Cal
+  const fd=new Date(y,mo,1).getDay();
+  const off=fd===0?6:fd-1;
+  let cal='';
+  for(let i=0;i<off;i++)cal+=`<div class="cal-d emp"></div>`;
+  for(let d=1;d<=dim;d++){
+    const it=d===now.getDate(),hd=!!map[d];
+    cal+=`<div class="cal-d ${it?'tod':''} ${hd&&!it?'has':''}" ${hd?`onclick="showDayMonth(${d-1})"`:''}>
+      ${d}${hd?`<div class="dot2"></div>`:''}
+    </div>`;
+  }
+  // Mood chart
+  const last=[];
+  for(let i=13;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);if(d.getMonth()===mo)last.push({day:d.getDate(),mood:map[d.getDate()]?.mood?ms[map[d.getDate()].mood]:0});}
+  const bars=last.map(d=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="height:${d.mood?Math.round(d.mood/5*100)+'%':'0%'};width:100%;border-radius:4px 4px 0 0;background:${d.mood?'var(--c)':'var(--border)'};transition:height .5s;min-height:${d.mood?'4px':'0'};"></div><div style="font-size:.5rem;color:var(--gray);">${d.day}</div></div>`).join('');
+  document.getElementById('mensuelContent').innerHTML=`
+    <h2 style="font-size:1rem;font-weight:900;margin-bottom:11px;">📈 ${MONTHS[mo].charAt(0).toUpperCase()+MONTHS[mo].slice(1)} ${y}</h2>
+    <div class="ms-grid">
+      <div class="ms-card c"><div class="ms-num">${days}</div><div class="ms-lbl">Jours planifiés</div></div>
+      <div class="ms-card g"><div class="ms-num">${allPts}</div><div class="ms-lbl">Points gagnés</div></div>
+      <div class="ms-card b"><div class="ms-num">${doneTodos}/${allTodos.length}</div><div class="ms-lbl">Tâches faites</div></div>
+      <div class="ms-card p"><div class="ms-num">${avgMood}</div><div class="ms-lbl">Humeur moy./5</div></div>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-hd"><h2>🗓 Calendrier</h2></div>
+      <div style="padding:9px 11px 11px;">
+        <div class="cal-grid">${['L','M','M','J','V','S','D'].map(d=>`<div class="cal-dl">${d}</div>`).join('')}${cal}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-hd"><h2>📈 Humeur — 14 jours</h2></div>
+      <div style="padding:11px 13px 13px;display:flex;align-items:flex-end;gap:3px;height:90px;">${bars}</div>
+    </div>
+    ${moods.length?`<div class="card"><div class="card-hd"><h2>😊 Répartition humeurs</h2></div><div style="padding:11px 13px 13px;">
+      ${['🚀','🙂','😐','😕','😫'].map(m=>{const c=moods.filter(x=>x===m).length,p=Math.round(c/moods.length*100);return`<div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;font-size:.67rem;margin-bottom:3px;"><span>${m} ${['Top !','Bien','Neutre','Difficile','Épuisé'][['🚀','🙂','😐','😕','😫'].indexOf(m)]}</span><span style="color:var(--gray);">${c}j (${p}%)</span></div><div style="height:6px;background:var(--border);border-radius:20px;"><div style="height:100%;width:${p}%;background:var(--c);border-radius:20px;"></div></div></div>`;}).join('')}
+    </div></div>`:''}`;
+}
+
+function showDayMonth(idx) {
+  const now=new Date(),y=now.getFullYear(),mo=now.getMonth();
+  const j=getJournal();
+  const month=j.filter(e=>{const d=new Date(e.date);return d.getFullYear()===y&&d.getMonth()===mo;});
+  if(month[idx]){const ji=j.indexOf(month[idx]);if(ji>=0)showEntry(ji);}
+}
+
+// ══════════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════════
+function renderSettings() {
+  const p=getProfile();
+  document.getElementById('profileName').textContent=p.name||'Utilisateur';
+  document.getElementById('profileEmail').textContent=p.email||'—';
+  document.getElementById('profileAvatar').textContent=(p.name||'U').charAt(0).toUpperCase();
+  document.getElementById('emailInput').value=p.email||'';
+  const s=getSettings();
+  ['notif','morning','evening'].forEach(k=>{document.getElementById('tgl'+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle('on',s[k]!==false);});
+  // Habits list
+  const habits=getHabits();
+  document.getElementById('habitsSettingsList').innerHTML=habits.map(h=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bg);"><span>${h.icon}</span><span style="flex:1;font-size:.75rem;font-weight:600;">${h.name}</span><span style="font-size:.65rem;color:var(--gray);">${h.hour}h · ${h.pts}pts</span></div>`).join('');
+}
+
+function toggleSetting(k) {
+  const s=getSettings();
+  s[k]=!s[k];
+  LS.set('settings',s);
+  document.getElementById('tgl'+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle('on',s[k]);
+  // Save email
+  const emailEl=document.getElementById('emailInput');
+  if(emailEl.value){const p=getProfile();p.email=emailEl.value;LS.set('profile',p);}
+}
+
+function sendTestEmail() {
+  const p=getProfile();
+  const email=document.getElementById('emailInput').value||p.email||'';
+  if(!email){showToast('Entrez votre email d\'abord !');return;}
+  const pts=getPoints();
+  const habits=getHabits();
+  const today=getDay(todayKey())||{};
+  const done=habits.filter(h=>today.habitsDone?.[h.id]);
+  const totalPts=done.reduce((s,h)=>s+h.pts,0);
+  const subject=encodeURIComponent(`🎯 PlannerPro – Résumé de ${p.name||'votre journée'}`);
+  const body=encodeURIComponent(`Bonjour ${p.name||''} !
+
+═══ RÉSUMÉ QUOTIDIEN ═══
+📅 ${new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+
+⭐ POINTS DU JOUR : ${totalPts} pts
+🔥 SÉRIE EN COURS : ${pts.streak} jours
+
+✅ HABITUDES ACCOMPLIES (${done.length}/${habits.length}) :
+${done.map(h=>`• ${h.icon} ${h.name} — +${h.pts} pts`).join('\n')}
+${habits.filter(h=>!today.habitsDone?.[h.id]).length>0?'\n⏳ HABITUDES RESTANTES :\n'+habits.filter(h=>!today.habitsDone?.[h.id]).map(h=>`• ${h.icon} ${h.name}`).join('\n'):''}
+
+${today.reflBien?`✨ CE QUI S'EST BIEN PASSÉ :\n${today.reflBien}\n`:''}
+${today.reflAmelio?`🔧 À AMÉLIORER :\n${today.reflAmelio}\n`:''}
+
+Continuez comme ça ! Chaque jour compte. 💪
+
+— Votre assistant PlannerPro`);
+  window.location.href=`mailto:${email}?subject=${subject}&body=${body}`;
+  showToast('📧 Email préparé !');
+}
+
+function resetApp() {
+  if(!confirm('Réinitialiser toutes les données ? Cette action est irréversible.')) return;
+  localStorage.clear();
+  location.reload();
+}
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+function go(tab) {
+  currentView=tab;
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('on',['home','week','bilan','journal','mensuel','settings'][i]===tab));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('view-'+tab).classList.add('on');
+  if(tab==='bilan') renderBilan();
+  if(tab==='journal') renderJournal();
+  if(tab==='mensuel') renderMensuel();
+  if(tab==='settings') renderSettings();
+  if(tab==='week') buildWeek();
+  if(tab==='home'){renderHabits();updateHomeStats();generateAIMessage();}
+}
+
+// ══════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2800);
+}
+
+function showPtsPopup(msg) {
+  const p=document.getElementById('ptsPopup');
+  p.textContent=msg; p.classList.add('on');
+  setTimeout(()=>p.classList.remove('on'),1800);
+}
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+async function initApp() {
+  await initSW();
+  loadTodos();
+  renderHabits();
+  updateHomeStats();
+  generateAIMessage();
+  clock();
+  setInterval(clock,1000);
+  setInterval(()=>{renderHabits();updateHomeStats();},60000);
+  setInterval(scheduleAllNotifications, 3600000);
+  scheduleAllNotifications();
+  // Check notif permission
+  if(Notification.permission==='denied'||Notification.permission==='default'){
+    document.getElementById('notifBanner').classList.add('on');
+    document.getElementById('notifBannerTxt').textContent='Activez les notifications pour recevoir vos rappels personnalisés';
+  }
+}
+
+// Start
+initSetup();
+</script>
+</body>
+</html>
